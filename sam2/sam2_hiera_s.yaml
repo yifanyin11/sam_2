@@ -10,8 +10,8 @@ model:
       _target_: sam2.modeling.backbones.hieradet.Hiera
       embed_dim: 96
       num_heads: 1
-      stages: [1, 2, 7, 2]
-      global_att_blocks: [5, 7, 9]
+      stages: [1, 2, 11, 2]
+      global_att_blocks: [7, 10, 13]
       window_pos_embed_bkg_spatial_size: [7, 7]
     neck:
       _target_: sam2.modeling.backbones.image_encoder.FpnNeck
@@ -21,7 +21,6 @@ model:
         normalize: true
         scale: null
         temperature: 10000
-        image_size: 512 # set this to the internal image resolution
       d_model: 256
       backbone_channel_list: [768, 384, 192, 96]
       fpn_top_down_levels: [2, 3]  # output level 0 and 1 directly use the backbone features
@@ -40,7 +39,7 @@ model:
       self_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32] # [32, 32] for 512x512 input, [64, 64] for 1024x1024 input
+        feat_sizes: [32, 32]
         embedding_dim: 256
         num_heads: 1
         downsample_rate: 1
@@ -51,7 +50,7 @@ model:
       cross_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32] # [32, 32] for 512x512 input, [64, 64] for 1024x1024 input
+        feat_sizes: [32, 32]
         rope_k_repeat: True
         embedding_dim: 256
         num_heads: 1
@@ -86,15 +85,13 @@ model:
         num_layers: 2
 
   num_maskmem: 7
-  image_size: 512 # set this to the internal image resolution
+  image_size: 1024
   # apply scaled sigmoid on mask logits for memory encoder, and directly feed input mask as output mask
-  # SAM decoder
   sigmoid_scale_for_mem_enc: 20.0
   sigmoid_bias_for_mem_enc: -10.0
   use_mask_input_as_output_without_sam: true
   # Memory
   directly_add_no_mem_embed: true
-  no_obj_embed_spatial: true
   # use high-resolution feature map in the SAM mask decoder
   use_high_res_features_in_sam: true
   # output 3 masks on the first click on initial conditioning frames
@@ -103,9 +100,7 @@ model:
   iou_prediction_use_sigmoid: True
   # cross-attend to object pointers from other frames (based on SAM output tokens) in the encoder
   use_obj_ptrs_in_encoder: true
-  add_tpos_enc_to_obj_ptrs: true
-  proj_tpos_enc_in_obj_ptrs: true
-  use_signed_tpos_enc_to_obj_ptrs: true
+  add_tpos_enc_to_obj_ptrs: false
   only_obj_ptrs_in_the_past_for_eval: true
   # object occlusion prediction
   pred_obj_scores: true
@@ -117,11 +112,5 @@ model:
   multimask_min_pt_num: 0
   multimask_max_pt_num: 1
   use_mlp_for_obj_ptr_proj: true
-
-  # compilation settings
-  compile_image_encoder: True
-  compile_memory_encoder: True
-  compile_memory_attention: True
-  compile_prompt_encoder: False
-  compile_mask_decoder: False
-
+  # Compilation flag
+  compile_image_encoder: False
